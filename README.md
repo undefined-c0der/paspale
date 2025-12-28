@@ -163,3 +163,6 @@ See [examples/](examples/) directory:
 - `examples/ablation.py` - Ablation study with gradient colors
 - `examples/dual_axis.py` - Bandwidth with miss rate overlay
 - `examples/kde.py` - Distribution visualization
+
+## License
+Paspale is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

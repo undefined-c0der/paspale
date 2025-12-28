@@ -7,7 +7,12 @@ name = "paspale"
 version = "0.1.0"
 description = "A unified plotting framework for academic papers"
 readme = "README.md"
+requires-python = ">=3.8"
+license = { file = "LICENSE" }
 keywords = ["plotting", "visualization", "academic", "paper", "matplotlib"]
+authors = [
+    { name = "Jinchen Jiang", email = "jiangjc.mail@gmail.com" }
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
@@ -18,15 +23,19 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Visualization",
 ]
-requires-python = ">=3.8"
 dependencies = [
     "matplotlib>=3.5.0",
     "numpy>=1.20.0",
     "pandas>=1.3.0",
     "seaborn>=0.11.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/undefined-c0der/paspale"
+Repository = "https://github.com/undefined-c0der/paspale.git"
 
 [project.optional-dependencies]
 dev = [
