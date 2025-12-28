@@ -1,0 +1,7 @@
+label,baseline,method_a,method_b
+Workload_1,1.0,1.5,2.1
+Workload_2,1.0,1.3,1.9
+Workload_3,1.0,1.7,2.3
+Workload_4,1.0,1.4,2.0
+Workload_5,1.0,1.6,2.2
+geomean,1.0,1.5,2.1

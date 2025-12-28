@@ -1,0 +1,7 @@
+label,Compute,Memory,Communication
+Workload_1,0.40,0.35,0.25
+Workload_2,0.41,0.34,0.25
+Workload_3,0.39,0.36,0.25
+Workload_4,0.38,0.37,0.25
+Workload_5,0.40,0.35,0.25
+geomean,0.396,0.354,0.25

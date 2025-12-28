@@ -1,0 +1,7 @@
+label,missrate
+Workload_1,0.100
+Workload_2,0.120
+Workload_3,0.140
+Workload_4,0.160
+Workload_5,0.180
+geomean,0.140

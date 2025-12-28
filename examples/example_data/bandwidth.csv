@@ -1,0 +1,7 @@
+label,Baseline,Cache,Prefetch,Ours
+Workload_1,50.0,60.0,40.0,70.0
+Workload_2,53.0,62.0,44.0,72.0
+Workload_3,56.0,64.0,48.0,74.0
+Workload_4,59.0,66.0,52.0,76.0
+Workload_5,62.0,68.0,56.0,78.0
+geomean,56.0,64.0,48.0,74.0
