@@ -13,6 +13,12 @@ PasPale provides a consistent, configurable interface for creating publication-r
 ## Installation
 
 ```bash
+pip install paspale
+```
+
+Or install from source:
+
+```bash
 git clone https://github.com/undefined-c0der/paspale.git
 cd paspale
 pip install -e .
