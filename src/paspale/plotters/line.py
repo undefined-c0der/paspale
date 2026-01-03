@@ -62,6 +62,8 @@ class LinePlotter(BasePlotter):
                 self._handles,
                 self.config.legend,
                 loc=self.config.legend_loc,
-                fontsize=self.config.font.legend,
+                ncol=self.config.legend_ncol,
+                bbox_to_anchor=self.config.legend_anchor,
                 frameon=False,
+                fontsize=self.config.font.legend,
             )

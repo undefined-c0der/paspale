@@ -17,6 +17,8 @@ def main():
         ylabel="Bandwidth (GB/s)",
         ylim=100,
         legend=["Baseline", "Cache", "Prefetch", "Ours"],
+        legend_ncol=5,
+        legend_anchor=(0.5, -0.1),
         colors="primary",
     )
 
@@ -25,6 +27,7 @@ def main():
         ylabel="Miss Rate",
         ylim=1.0,
         colors="lines",
+        legend=["Miss Rate"],  # Line legend on second row
     )
 
     # Create sub-plotters
