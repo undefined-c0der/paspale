@@ -2,139 +2,147 @@
 Dual-axis plotter implementation.
 """
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Type
 
 import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 
 from ..base import BasePlotter
-from ..colors import resolve_colors
 from ..config import PlotConfig
 
 
 class DualAxisPlotter(BasePlotter):
     """
-    Dual Y-axis plotter.
+    Dual Y-axis plotter using composition of two sub-plotters.
 
-    Creates plots with two Y-axes, typically bars on left and lines on right.
-
-    Requires two DataFrames:
-        - Primary data: loaded via load_csv()
-        - Secondary data: loaded via load_secondary()
+    Creates plots with two Y-axes by combining any two plotter types.
+    The primary plotter draws on the left axis, and the secondary plotter
+    draws on the right axis.
 
     Example:
-        config = PlotConfig(
-            output="bandwidth_missrate.pdf",
+        from paspale import DualAxisPlotter, BarPlotter, LinePlotter, PlotConfig
+
+        # Define configs for each axis
+        primary_config = PlotConfig(
+            output="dual_plot.pdf",
             ylabel="Bandwidth (GB/s)",
             ylim=100,
+            legend=["Method A", "Method B"],
         )
 
-        plotter = DualAxisPlotter(config)
-        plotter.load_csv("bandwidth.csv")
-        plotter.load_secondary("missrate.csv", ylabel="Miss Rate", ylim=1.0)
+        secondary_config = PlotConfig(
+            ylabel="Miss Rate",
+            ylim=1.0,
+        )
+
+        # Create dual-axis plotter with two sub-plotters
+        plotter = DualAxisPlotter(
+            primary=BarPlotter(primary_config),
+            secondary=LinePlotter(secondary_config),
+        )
+
+        # Load data for each plotter
+        plotter.primary.load_csv("bandwidth.csv")
+        plotter.secondary.load_csv("missrate.csv")
+
+        # Plot
         plotter.plot()
     """
 
-    def __init__(self, config: Optional[PlotConfig] = None):
-        super().__init__(config)
-        self.ax2: Optional[plt.Axes] = None
-        self.secondary_data: Optional[np.ndarray] = None
-        self.secondary_ylabel: str = ""
-        self.secondary_ylim: float = 1.0
-
-    def load_secondary(
+    def __init__(
         self,
-        path: str,
-        ylabel: str = "",
-        ylim: float = 1.0,
-    ) -> "DualAxisPlotter":
+        primary: BasePlotter,
+        secondary: BasePlotter,
+        config: Optional[PlotConfig] = None,
+    ):
         """
-        Load secondary axis data.
+        Initialize dual-axis plotter with two sub-plotters.
 
         Args:
-            path: Path to CSV file
-            ylabel: Label for secondary Y-axis
-            ylim: Upper limit for secondary Y-axis
-
-        Returns:
-            self for chaining
+            primary: Plotter for the left Y-axis
+            secondary: Plotter for the right Y-axis
+            config: Optional override config (uses primary's config if None)
         """
-        data = pd.read_csv(path)
-        self.secondary_data = data.iloc[:, 1:].values
-        self.secondary_ylabel = ylabel
-        self.secondary_ylim = ylim
-        return self
+        # Use primary's config as the main config
+        super().__init__(config or primary.config)
+        self.primary = primary
+        self.secondary = secondary
+        self.ax2: Optional[plt.Axes] = None
 
     def setup_figure(self) -> Tuple[plt.Figure, plt.Axes]:
-        """Create figure with dual axes."""
+        """Create figure with dual axes and share with sub-plotters."""
         self.fig, self.ax = plt.subplots(figsize=self.config.size)
         self.ax2 = self.ax.twinx()
+
+        # Share figure and axes with sub-plotters
+        self.primary.fig = self.fig
+        self.primary.ax = self.ax
+
+        self.secondary.fig = self.fig
+        self.secondary.ax = self.ax2
+
         return self.fig, self.ax
 
     def draw(self) -> None:
-        """Draw bars on primary axis, lines on secondary."""
-        # Draw bars (similar to BarPlotter)
-        if self.data is not None:
-            labels = self.data.iloc[:, 0].tolist()
-            values = self.data.iloc[:, 1:].values
+        """Draw both sub-plotters on their respective axes."""
+        # Draw primary plotter on left axis
+        self.primary.draw()
 
-            x = np.arange(len(labels))
-            n_bars = values.shape[1]
-            width = 0.8 / n_bars
-
-            colors = resolve_colors(self.config.colors, n_bars)
-
-            for i in range(n_bars):
-                self.ax.bar(
-                    x + i * width - 0.4 + width / 2,
-                    values[:, i],
-                    width,
-                    color=colors[i],
-                    edgecolor="black",
-                    linewidth=0.5,
-                )
-
-            # Hide x-axis ticks
-            self.ax.set_xticks([])
-            self.ax.xaxis.set_ticks_position("none")
-
-            # Add labels using ax.text (consistent with BarPlotter)
-            for i, label in enumerate(labels):
-                x_pos = x[i] - 0.4
-                self.ax.text(
-                    x_pos,
-                    self.config.ylim_min,
-                    str(label),
-                    ha="left",
-                    va="top",
-                    fontsize=self.config.font.annotation,
-                    rotation=self.config.label_rotation,
-                )
-
-        # Draw lines on secondary axis
-        if self.secondary_data is not None and self.ax2 is not None:
-            x = np.arange(self.secondary_data.shape[0])
-            line_colors = resolve_colors("lines", self.secondary_data.shape[1])
-
-            for i in range(self.secondary_data.shape[1]):
-                self.ax2.plot(
-                    x,
-                    self.secondary_data[:, i],
-                    marker="o",
-                    color=line_colors[i],
-                    linewidth=2,
-                    markersize=6,
-                )
+        # Draw secondary plotter on right axis
+        self.secondary.draw()
 
     def setup_axes(self) -> None:
-        """Configure both axes."""
-        super().setup_axes()
+        """Configure both axes using their respective configs."""
+        # Setup primary axis
+        self.primary.setup_axes()
 
+        # Setup secondary axis
         if self.ax2 is not None:
-            self.ax2.set_ylabel(
-                self.secondary_ylabel,
-                fontsize=self.config.font.label,
+            secondary_config = self.secondary.config
+
+            if secondary_config.ylabel:
+                self.ax2.set_ylabel(
+                    secondary_config.ylabel,
+                    fontsize=secondary_config.font.label,
+                )
+
+            if secondary_config.ylim is not None:
+                self.ax2.set_ylim(secondary_config.ylim_min, secondary_config.ylim)
+
+            self.ax2.tick_params(axis="y", labelsize=secondary_config.font.tick)
+
+    def add_legend(self) -> None:
+        """Add combined legend from both plotters."""
+        # Collect handles and labels from both axes
+        handles1, labels1 = self.ax.get_legend_handles_labels()
+        handles2, labels2 = (
+            self.ax2.get_legend_handles_labels() if self.ax2 else ([], [])
+        )
+
+        all_handles = handles1 + handles2
+        all_labels = labels1 + labels2
+
+        # Use explicit legend from config if provided
+        if self.config.legend:
+            self.fig.legend(
+                self.config.legend,
+                loc=self.config.legend_loc,
+                ncol=self.config.legend_ncol,
+                bbox_to_anchor=self.config.legend_anchor,
+                frameon=False,
+                fontsize=self.config.font.legend,
             )
-            self.ax2.set_ylim(0, self.secondary_ylim)
-            self.ax2.tick_params(axis="y", labelsize=self.config.font.tick)
+        elif all_handles:
+            self.fig.legend(
+                all_handles,
+                all_labels,
+                loc=self.config.legend_loc,
+                ncol=self.config.legend_ncol,
+                bbox_to_anchor=self.config.legend_anchor,
+                frameon=False,
+                fontsize=self.config.font.legend,
+            )
+
+    def customize(self) -> None:
+        """Run customize hooks for both sub-plotters."""
+        self.primary.customize()
+        self.secondary.customize()
